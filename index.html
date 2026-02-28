@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solar Plant Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Mulish:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0d1117;
+  --card: #161b22;
+  --card2: #1c2330;
+  --border: #2a3444;
+  --sun: #f5a623;
+  --sun-glow: rgba(245,166,35,0.15);
+  --green: #3dd68c;
+  --green-glow: rgba(61,214,140,0.15);
+  --blue: #4ea8de;
+  --blue-glow: rgba(78,168,222,0.15);
+  --text: #e8edf5;
+  --muted: #7a8899;
+  --soft: #a8b6c8;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Mulish', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1rem 4rem;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: -120px; left: 50%;
+  transform: translateX(-50%);
+  width: 700px; height: 400px;
+  background: radial-gradient(ellipse, rgba(245,166,35,0.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.wrapper {
+  width: 100%;
+  max-width: 580px;
+  animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Header ── */
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.sun-icon {
+  width: 70px; height: 70px;
+  background: radial-gradient(circle, #ffd166 30%, #f5a623 70%);
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin-bottom: 1.2rem;
+  box-shadow: 0 0 0 12px rgba(245,166,35,0.08), 0 0 0 24px rgba(245,166,35,0.04);
+  animation: pulse 3s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,100% { box-shadow: 0 0 0 12px rgba(245,166,35,0.08), 0 0 0 24px rgba(245,166,35,0.04); }
+  50%     { box-shadow: 0 0 0 18px rgba(245,166,35,0.12), 0 0 0 36px rgba(245,166,35,0.06); }
+}
+
+.header h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #ffd166, #f5a623);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.4rem;
+}
+
+.header p { font-size: 0.85rem; color: var(--muted); }
+
+/* ── Unified Nav Bar ── */
+.nav-bar {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 0.45rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+}
+
+.primary-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.3rem;
+}
+
+.primary-tab {
+  padding: 0.8rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  background: transparent;
+  color: var(--muted);
+  font-family: 'Mulish', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.primary-tab.dimmed {
+  opacity: 0.35;
+  filter: grayscale(0.3);
+}
+
+.primary-tab.active-consumption {
+  background: linear-gradient(135deg, rgba(245,166,35,0.18), rgba(245,166,35,0.07));
+  color: var(--sun);
+  border-color: rgba(245,166,35,0.35);
+}
+
+.primary-tab.active-capacity {
+  background: linear-gradient(135deg, rgba(61,214,140,0.18), rgba(61,214,140,0.07));
+  color: var(--green);
+  border-color: rgba(61,214,140,0.35);
+}
+
+/* Sub-tabs — seamlessly nested, no extra background box */
+.nav-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+  margin: 0.35rem 0.6rem;
+}
+
+.sub-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.3rem;
+  padding: 0 0.05rem;
+}
+
+.sub-tab {
+  padding: 0.6rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--muted);
+  font-family: 'Mulish', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.sub-tab:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+
+.sub-tab.active-res {
+  background: rgba(245,166,35,0.1);
+  color: var(--sun);
+  border-color: rgba(245,166,35,0.28);
+}
+
+.sub-tab.active-biz {
+  background: rgba(78,168,222,0.1);
+  color: var(--blue);
+  border-color: rgba(78,168,222,0.28);
+}
+
+/* ── Panels ── */
+.main-panel { display: none; }
+.main-panel.active { display: block; }
+.sub-panel { display: none; }
+.sub-panel.active { display: block; }
+
+/* ── Card ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2rem;
+  margin-bottom: 1.2rem;
+  box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+}
+
+.section-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.9rem;
+  border-radius: 20px;
+  margin-bottom: 1.4rem;
+}
+.badge-res  { background: rgba(245,166,35,0.1); color: var(--sun);   border: 1px solid rgba(245,166,35,0.25); }
+.badge-biz  { background: rgba(78,168,222,0.1); color: var(--blue);  border: 1px solid rgba(78,168,222,0.25); }
+.badge-cost { background: rgba(61,214,140,0.1); color: var(--green); border: 1px solid rgba(61,214,140,0.25); }
+
+/* ── Inputs ── */
+.input-group { margin-bottom: 1.4rem; }
+.input-group:last-child { margin-bottom: 0; }
+
+.input-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.input-label span { font-size: 0.85rem; font-weight: 600; color: var(--soft); }
+.input-hint { font-size: 0.72rem; color: var(--muted); font-weight: 400; }
+
+.number-field { position: relative; }
+
+.number-field input {
+  width: 100%;
+  padding: 0.9rem 3.8rem 0.9rem 1.2rem;
+  background: var(--card2);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-family: 'Mulish', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  outline: none;
+  transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+  -moz-appearance: textfield;
+}
+.number-field input::-webkit-outer-spin-button,
+.number-field input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+.number-field input.inp-res:focus { border-color: var(--sun);   box-shadow: 0 0 0 4px var(--sun-glow);   background: #1e2736; }
+.number-field input.inp-biz:focus { border-color: var(--blue);  box-shadow: 0 0 0 4px var(--blue-glow);  background: #1e2736; }
+.number-field input.inp-cap:focus { border-color: var(--green); box-shadow: 0 0 0 4px var(--green-glow); background: #1e2736; }
+
+.unit-badge {
+  position: absolute;
+  right: 1rem; top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.72rem; font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  letter-spacing: 0.05em;
+  pointer-events: none;
+}
+.ubadge-res  { color: var(--sun);   background: rgba(245,166,35,0.12); }
+.ubadge-biz  { color: var(--blue);  background: rgba(78,168,222,0.12); }
+.ubadge-cap  { color: var(--green); background: rgba(61,214,140,0.12); }
+
+/* Cycle selector */
+.cycle-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+.cycle-option { position: relative; }
+.cycle-option input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+.cycle-option label {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 1rem; background: var(--card2); border: 1.5px solid var(--border);
+  border-radius: 12px; cursor: pointer; transition: all 0.25s; gap: 0.3rem;
+}
+.cycle-days { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 700; color: var(--muted); line-height: 1; transition: color 0.25s; }
+.cycle-text { font-size: 0.72rem; font-weight: 600; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.25s; }
+
+.res-cycle .cycle-option input:checked + label { border-color: var(--sun); background: rgba(245,166,35,0.08); box-shadow: 0 0 0 4px var(--sun-glow); }
+.res-cycle .cycle-option input:checked + label .cycle-days,
+.res-cycle .cycle-option input:checked + label .cycle-text { color: var(--sun); }
+
+.biz-cycle .cycle-option input:checked + label { border-color: var(--blue); background: rgba(78,168,222,0.08); box-shadow: 0 0 0 4px var(--blue-glow); }
+.biz-cycle .cycle-option input:checked + label .cycle-days,
+.biz-cycle .cycle-option input:checked + label .cycle-text { color: var(--blue); }
+
+/* Unit pills */
+.unit-pills { display: flex; gap: 0.5rem; margin-top: 0.6rem; }
+.unit-pill {
+  padding: 0.3rem 1rem; border-radius: 20px;
+  border: 1.5px solid var(--border); background: var(--card2);
+  color: var(--muted); font-family: 'Mulish', sans-serif;
+  font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
+}
+.unit-pill.active-cap { border-color: var(--green); background: rgba(61,214,140,0.1); color: var(--green); }
+
+/* ── Buttons ── */
+.calc-btn {
+  width: 100%; padding: 1.1rem; border: none; border-radius: 14px;
+  font-family: 'Mulish', sans-serif; font-size: 1rem; font-weight: 800;
+  letter-spacing: 0.04em; cursor: pointer; transition: all 0.25s;
+  display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+}
+.btn-res  { background: linear-gradient(135deg,#f5a623,#ffd166); color:#1a0f00; box-shadow:0 4px 20px rgba(245,166,35,0.3); }
+.btn-res:hover  { transform:translateY(-2px); box-shadow:0 8px 30px rgba(245,166,35,0.45); }
+.btn-biz  { background: linear-gradient(135deg,#2a7db5,#4ea8de); color:#fff; box-shadow:0 4px 20px rgba(78,168,222,0.3); }
+.btn-biz:hover  { transform:translateY(-2px); box-shadow:0 8px 30px rgba(78,168,222,0.45); }
+.btn-cap  { background: linear-gradient(135deg,#1fa060,#3dd68c); color:#fff; box-shadow:0 4px 20px rgba(61,214,140,0.3); }
+.btn-cap:hover  { transform:translateY(-2px); box-shadow:0 8px 30px rgba(61,214,140,0.45); }
+.calc-btn:active { transform:translateY(0); }
+
+/* ── Result Card ── */
+.result-card {
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: 20px; overflow: hidden;
+  box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+  display: none; margin-top: 1.2rem;
+  animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);
+}
+.result-card.show { display: block; }
+
+@keyframes popIn {
+  from { opacity:0; transform:scale(0.92) translateY(10px); }
+  to   { opacity:1; transform:scale(1) translateY(0); }
+}
+
+.result-header {
+  background: linear-gradient(135deg,#1a2235,#1e2a40);
+  padding: 1.2rem 1.8rem; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.result-title { font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.14em; color:var(--muted); }
+.result-check {
+  width:28px; height:28px; background:rgba(61,214,140,0.15);
+  border:1.5px solid var(--green); border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  color:var(--green); font-size:0.85rem;
+}
+
+.result-body { padding: 2rem; text-align: center; }
+
+.result-value {
+  font-family: 'Playfair Display', serif;
+  font-size: 4.5rem; font-weight: 900; line-height: 1;
+  margin-bottom: 0.3rem; letter-spacing: -0.03em;
+}
+.rval-res { background:linear-gradient(135deg,#ffd166,#f5a623); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.rval-biz { background:linear-gradient(135deg,#7ecef4,#4ea8de); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.rval-cap { background:linear-gradient(135deg,#a8f7d0,#3dd68c); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+
+.result-unit { font-size:1.1rem; font-weight:700; color:var(--soft); margin-bottom:1.4rem; }
+
+/* Fixed cost box (residential table) */
+.fixed-cost-box {
+  background: rgba(245,166,35,0.07); border:1px solid rgba(245,166,35,0.2);
+  border-radius:12px; padding:1.1rem 1.4rem; margin-top:0.5rem; text-align:center;
+}
+.fixed-cost-label { font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:var(--muted); margin-bottom:0.5rem; }
+.fixed-cost-value { font-family:'Playfair Display',serif; font-size:2rem; font-weight:900; color:var(--green); }
+.fixed-cost-note  { font-family:'Courier New',monospace; font-size:0.7rem; color:var(--muted); margin-top:0.3rem; }
+
+/* ── Cost Calculator Section (collapsible) ── */
+.cost-section {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:20px; overflow:hidden;
+  box-shadow:0 4px 30px rgba(0,0,0,0.3); margin-top:1.2rem;
+}
+.cost-toggle-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:1.2rem 1.8rem; cursor:pointer; transition:background 0.2s; user-select:none;
+}
+.cost-toggle-header:hover { background:rgba(255,255,255,0.03); }
+.cost-toggle-left { display:flex; align-items:center; gap:0.7rem; }
+.cost-toggle-title { font-size:0.95rem; font-weight:700; }
+.cost-chevron { font-size:1.4rem; transition:transform 0.3s; line-height:1; }
+.cost-chevron.open { transform:rotate(90deg); }
+.cost-body { display:none; padding:0 1.8rem 1.8rem; border-top:1px solid var(--border); }
+.cost-body.open { display:block; }
+.cost-input-group { margin-bottom:1.1rem; margin-top:1.2rem; }
+
+/* cost results */
+.cost-result {
+  background:var(--card2); border-radius:12px;
+  padding:1.2rem 1.4rem; margin-top:1.2rem;
+  display:none; animation:popIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+.cost-result.show { display:block; }
+.cost-result-row { display:flex; justify-content:space-between; align-items:center; padding:0.5rem 0; }
+.cost-result-label { font-size:0.82rem; color:var(--muted); }
+.cost-result-val { font-family:'Courier New',monospace; font-size:0.9rem; font-weight:700; color:var(--text); }
+.cost-divider { height:1px; background:var(--border); margin:0.5rem 0; }
+.total-label { font-size:0.88rem; font-weight:700; color:var(--soft); }
+.total-amount { font-size:1.2rem; color:var(--green); }
+
+/* ── Error ── */
+.error-msg {
+  display:none; color:#ff6b6b; font-size:0.78rem; font-weight:600;
+  margin-top:0.4rem; padding:0.5rem 0.8rem;
+  background:rgba(255,107,107,0.08); border-radius:8px; border:1px solid rgba(255,107,107,0.2);
+}
+.error-msg.show { display:block; }
+
+/* ── Footer ── */
+.footer { text-align:center; margin-top:1.5rem; font-size:0.72rem; color:var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="sun-icon">☀</div>
+    <h1>Solar Plant Calculator</h1>
+    <p>Calculate the required solar system capacity for your needs</p>
+  </div>
+
+  <!-- ── UNIFIED NAV BAR ── -->
+  <div class="nav-bar">
+    <div class="primary-tabs">
+      <button class="primary-tab active-consumption" id="ptab-consumption" onclick="switchPrimary('consumption')">
+        ⚡ Consumption
+      </button>
+      <button class="primary-tab dimmed" id="ptab-capacity" onclick="switchPrimary('capacity')">
+        🔆 Plant Capacity
+      </button>
+    </div>
+    <div class="nav-divider"></div>
+    <!-- Sub-tabs for Consumption -->
+    <div class="sub-tabs" id="subtabs-consumption">
+      <button class="sub-tab active-res" id="ctab-res" onclick="switchSub('consumption','res')">🏠 Residential</button>
+      <button class="sub-tab" id="ctab-biz" onclick="switchSub('consumption','biz')">🏢 Business</button>
+    </div>
+    <!-- Sub-tabs for Capacity -->
+    <div class="sub-tabs" id="subtabs-capacity" style="display:none;">
+      <button class="sub-tab active-res" id="kwtab-res" onclick="switchSub('capacity','res')">🏠 Residential</button>
+      <button class="sub-tab" id="kwtab-biz" onclick="switchSub('capacity','biz')">🏢 Business</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       PRIMARY: CONSUMPTION
+  ════════════════════════════════════════ -->
+  <div class="main-panel active" id="mpanel-consumption">
+
+    <!-- Consumption → Residential -->
+    <div class="sub-panel active" id="cpanel-res">
+      <div class="card">
+        <div class="section-badge badge-res">🏠 Residential</div>
+        <div class="input-group">
+          <div class="input-label">
+            <span>Energy Consumption (KWh)</span>
+            <span class="input-hint">From your electricity bill</span>
+          </div>
+          <div class="number-field">
+            <input type="number" class="inp-res" id="cres-kwh" placeholder="e.g. 400" min="1" oninput="clearPanel('cres')">
+            <span class="unit-badge ubadge-res">kWh</span>
+          </div>
+          <div class="error-msg" id="cres-error">Please enter a valid kWh value greater than 0.</div>
+        </div>
+        <div class="input-group">
+          <div class="input-label">
+            <span>Bill Cycle</span>
+            <span class="input-hint">Duration of your billing period</span>
+          </div>
+          <div class="cycle-selector res-cycle">
+            <div class="cycle-option">
+              <input type="radio" name="cres-cycle" id="cres-c30" value="30" checked onchange="clearPanel('cres')">
+              <label for="cres-c30"><span class="cycle-days">30</span><span class="cycle-text">Days</span></label>
+            </div>
+            <div class="cycle-option">
+              <input type="radio" name="cres-cycle" id="cres-c60" value="60" onchange="clearPanel('cres')">
+              <label for="cres-c60"><span class="cycle-days">60</span><span class="cycle-text">Days</span></label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="calc-btn btn-res" onclick="calcConsumption('res')">☀ Plant Capacity</button>
+
+      <!-- Result -->
+      <div class="result-card" id="cres-result">
+        <div class="result-header">
+          <span class="result-title">Residential Solar Plant</span>
+          <span class="result-check">✓</span>
+        </div>
+        <div class="result-body">
+          <div class="result-value rval-res" id="cres-rval">0</div>
+          <div class="result-unit" id="cres-runit">kW Solar Plant</div>
+          <div class="fixed-cost-box" id="cres-fixedcost">
+            <div class="fixed-cost-label">Estimated Project Cost</div>
+            <div class="fixed-cost-value" id="cres-costval">—</div>
+            <div class="fixed-cost-note"  id="cres-costnote"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cost calculator for >10kW residential -->
+      <div class="cost-section" id="cres-cost-section" style="display:none;">
+        <div class="cost-toggle-header" onclick="toggleCost('cres')">
+          <div class="cost-toggle-left">
+            <span>💰</span>
+            <span class="cost-toggle-title" style="color:var(--sun)">Cost Calculator</span>
+          </div>
+          <span class="cost-chevron" id="cres-chevron" style="color:var(--sun)">›</span>
+        </div>
+        <div class="cost-body" id="cres-cbody">
+          <div class="cost-input-group">
+            <div class="input-label"><span>Cost per kW</span><span class="input-hint">₹ per kW</span></div>
+            <div class="number-field">
+              <input type="number" class="inp-res" id="cres-cpkw" placeholder="e.g. 80000" min="1" oninput="clearCostResult('cres')">
+              <span class="unit-badge ubadge-res">₹/kW</span>
+            </div>
+          </div>
+          <div class="cost-input-group">
+            <div class="input-label"><span>Additional Costs</span><span class="input-hint">Optional</span></div>
+            <div class="number-field">
+              <input type="number" class="inp-res" id="cres-extra" placeholder="e.g. 5000" min="0" oninput="clearCostResult('cres')">
+              <span class="unit-badge ubadge-res">₹</span>
+            </div>
+          </div>
+          <button class="calc-btn btn-res" style="margin-top:0.5rem;" onclick="calcCost('cres')">💰 Calculate Total Cost</button>
+          <div class="cost-result" id="cres-costresult">
+            <div class="cost-result-row"><span class="cost-result-label">Plant Capacity</span><span class="cost-result-val" style="color:var(--sun)" id="cres-cr-cap">—</span></div>
+            <div class="cost-result-row"><span class="cost-result-label">Project Cost</span><span class="cost-result-val" id="cres-cr-base">—</span></div>
+            <div class="cost-result-row"><span class="cost-result-label">Additional</span><span class="cost-result-val" id="cres-cr-extra">—</span></div>
+            <div class="cost-divider"></div>
+            <div class="cost-result-row"><span class="cost-result-label total-label">Total Estimated Cost</span><span class="cost-result-val total-amount" id="cres-cr-total">—</span></div>
+          </div>
+          <div class="error-msg" id="cres-cost-error" style="margin-top:0.8rem;">Please enter a valid cost per kW.</div>
+        </div>
+      </div>
+      <div class="footer">Peak sun hours factor = 4 hrs/day</div>
+    </div>
+
+    <!-- Consumption → Business -->
+    <div class="sub-panel" id="cpanel-biz">
+      <div class="card">
+        <div class="section-badge badge-biz">🏢 Business</div>
+        <div class="input-group">
+          <div class="input-label">
+            <span>Energy Consumption (KWh)</span>
+            <span class="input-hint">From your electricity bill</span>
+          </div>
+          <div class="number-field">
+            <input type="number" class="inp-biz" id="cbiz-kwh" placeholder="e.g. 2000" min="1" oninput="clearPanel('cbiz')">
+            <span class="unit-badge ubadge-biz">kWh</span>
+          </div>
+          <div class="error-msg" id="cbiz-error">Please enter a valid kWh value greater than 0.</div>
+        </div>
+        <div class="input-group">
+          <div class="input-label">
+            <span>Bill Cycle</span>
+            <span class="input-hint">Duration of your billing period</span>
+          </div>
+          <div class="cycle-selector biz-cycle">
+            <div class="cycle-option">
+              <input type="radio" name="cbiz-cycle" id="cbiz-c30" value="30" checked onchange="clearPanel('cbiz')">
+              <label for="cbiz-c30"><span class="cycle-days">30</span><span class="cycle-text">Days</span></label>
+            </div>
+            <div class="cycle-option">
+              <input type="radio" name="cbiz-cycle" id="cbiz-c60" value="60" onchange="clearPanel('cbiz')">
+              <label for="cbiz-c60"><span class="cycle-days">60</span><span class="cycle-text">Days</span></label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="calc-btn btn-biz" onclick="calcConsumption('biz')">🏢 Plant Capacity</button>
+
+      <!-- Result -->
+      <div class="result-card" id="cbiz-result">
+        <div class="result-header">
+          <span class="result-title">Business Solar Plant</span>
+          <span class="result-check">✓</span>
+        </div>
+        <div class="result-body">
+          <div class="result-value rval-biz" id="cbiz-rval">0</div>
+          <div class="result-unit" id="cbiz-runit">kW Solar Plant</div>
+        </div>
+      </div>
+
+      <!-- Business cost calculator -->
+      <div class="cost-section" id="cbiz-cost-section" style="display:none;">
+        <div class="cost-toggle-header" onclick="toggleCost('cbiz')">
+          <div class="cost-toggle-left">
+            <span>💰</span>
+            <span class="cost-toggle-title" style="color:var(--blue)">Cost Calculator</span>
+          </div>
+          <span class="cost-chevron" id="cbiz-chevron" style="color:var(--blue)">›</span>
+        </div>
+        <div class="cost-body" id="cbiz-cbody">
+          <div class="cost-input-group">
+            <div class="input-label"><span>Cost per kW</span><span class="input-hint">₹ per kW</span></div>
+            <div class="number-field">
+              <input type="number" class="inp-biz" id="cbiz-cpkw" placeholder="e.g. 80000" min="1" oninput="clearCostResult('cbiz')">
+              <span class="unit-badge ubadge-biz">₹/kW</span>
+            </div>
+          </div>
+          <div class="cost-input-group">
+            <div class="input-label"><span>Additional Costs</span><span class="input-hint">Optional</span></div>
+            <div class="number-field">
+              <input type="number" class="inp-biz" id="cbiz-extra" placeholder="e.g. 5000" min="0" oninput="clearCostResult('cbiz')">
+              <span class="unit-badge ubadge-biz">₹</span>
+            </div>
+          </div>
+          <button class="calc-btn btn-biz" style="margin-top:0.5rem;" onclick="calcCost('cbiz')">💰 Calculate Total Cost</button>
+          <div class="cost-result" id="cbiz-costresult">
+            <div class="cost-result-row"><span class="cost-result-label">Plant Capacity</span><span class="cost-result-val" style="color:var(--blue)" id="cbiz-cr-cap">—</span></div>
+            <div class="cost-result-row"><span class="cost-result-label">Project Cost</span><span class="cost-result-val" id="cbiz-cr-base">—</span></div>
+            <div class="cost-result-row"><span class="cost-result-label">Additional</span><span class="cost-result-val" id="cbiz-cr-extra">—</span></div>
+            <div class="cost-divider"></div>
+            <div class="cost-result-row"><span class="cost-result-label total-label">Total Estimated Cost</span><span class="cost-result-val total-amount" id="cbiz-cr-total">—</span></div>
+          </div>
+          <div class="error-msg" id="cbiz-cost-error" style="margin-top:0.8rem;">Please enter a valid cost per kW.</div>
+        </div>
+      </div>
+      <div class="footer">Peak sun hours factor = 4 hrs/day</div>
+    </div>
+
+  </div><!-- /mpanel-consumption -->
+
+
+  <!-- ════════════════════════════════════════
+       PRIMARY: PLANT CAPACITY
+  ════════════════════════════════════════ -->
+  <div class="main-panel" id="mpanel-capacity">
+
+    <!-- Capacity → Residential -->
+    <div class="sub-panel active" id="kwpanel-res">
+      <div class="card">
+        <div class="section-badge badge-res">🏠 Residential</div>
+        <div class="input-group">
+          <div class="input-label">
+            <span>Plant Capacity</span>
+            <span class="input-hint">Enter known capacity</span>
+          </div>
+          <div class="number-field">
+            <input type="number" class="inp-res" id="kwres-cap" placeholder="e.g. 5" min="0.1" step="0.1" oninput="clearPanel('kwres')">
+            <span class="unit-badge ubadge-res" id="kwres-ubadge">kW</span>
+          </div>
+          <div class="unit-pills">
+            <button class="unit-pill active-cap" id="kwres-pill-kw" onclick="setUnit('kwres','kw')">kW</button>
+            <button class="unit-pill" id="kwres-pill-mw" onclick="setUnit('kwres','mw')">MW</button>
+          </div>
+          <div class="error-msg" id="kwres-error">Please enter a valid capacity greater than 0.</div>
+        </div>
+      </div>
+      <button class="calc-btn btn-res" onclick="calcCapacity('kwres')">☀ Calculate Cost</button>
+
+      <!-- Result: fixed cost if ≤10 kW -->
+      <div class="result-card" id="kwres-result">
+        <div class="result-body" style="padding-top:1.5rem;">
+          <div class="fixed-cost-box" id="kwres-fixedcost">
+            <div class="fixed-cost-label">Estimated Project Cost</div>
+            <div class="fixed-cost-value" id="kwres-costval">—</div>
+            <div class="fixed-cost-note"  id="kwres-costnote"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cost calculator shown after Calculate Cost (>10 kW or always for reference) -->
+      <div class="cost-section" id="kwres-cost-section" style="display:none;">
+        <div class="cost-toggle-header" onclick="toggleCost('kwres')">
+          <div class="cost-toggle-left">
+            <span>💰</span>
+            <span class="cost-toggle-title" style="color:var(--sun)">Cost Calculator</span>
+          </div>
+          <span class="cost-chevron" id="kwres-chevron" style="color:var(--sun)">›</span>
+        </div>
+        <div class="cost-body" id="kwres-cbody">
+          <div class="cost-input-group">
+            <div class="input-label"><span>Cost per kW</span><span class="input-hint">₹ per kW</span></div>
+            <div class="number-field">
+              <input type="number" class="inp-res" id="kwres-cpkw" placeholder="e.g. 80000" min="1" oninput="clearCostResult('kwres')">
+              <span class="unit-badge ubadge-res">₹/kW</span>
+            </div>
+          </div>
+          <div class="cost-input-group">
+            <div class="input-label"><span>Additional Costs</span><span class="input-hint">Optional</span></div>
+            <div class="number-field">
+              <input type="number" class="inp-res" id="kwres-extra" placeholder="e.g. 5000" min="0" oninput="clearCostResult('kwres')">
+              <span class="unit-badge ubadge-res">₹</span>
+            </div>
+          </div>
+          <button class="calc-btn btn-res" style="margin-top:0.5rem;" onclick="calcCostFromCapacity('kwres')">💰 Calculate Total Cost</button>
+          <div class="cost-result" id="kwres-costresult">
+            <div class="cost-result-row"><span class="cost-result-label">Plant Capacity</span><span class="cost-result-val" style="color:var(--sun)" id="kwres-cr-cap">—</span></div>
+            <div class="cost-result-row"><span class="cost-result-label">Project Cost</span><span class="cost-result-val" id="kwres-cr-base">—</span></div>
+            <div class="cost-result-row"><span class="cost-result-label">Additional</span><span class="cost-result-val" id="kwres-cr-extra">—</span></div>
+            <div class="cost-divider"></div>
+            <div class="cost-result-row"><span class="cost-result-label total-label">Total Estimated Cost</span><span class="cost-result-val total-amount" id="kwres-cr-total">—</span></div>
+          </div>
+          <div class="error-msg" id="kwres-cost-error" style="margin-top:0.8rem;">Please enter a valid cost per kW.</div>
+        </div>
+      </div>
+      <div class="footer">Enter capacity directly to estimate cost</div>
+    </div>
+
+    <!-- Capacity → Business -->
+    <div class="sub-panel" id="kwpanel-biz">
+      <div class="card">
+        <div class="section-badge badge-biz">🏢 Business</div>
+        <div class="input-group">
+          <div class="input-label">
+            <span>Plant Capacity</span>
+            <span class="input-hint">Enter known capacity</span>
+          </div>
+          <div class="number-field">
+            <input type="number" class="inp-biz" id="kwbiz-cap" placeholder="e.g. 50" min="0.1" step="0.1" oninput="clearPanel('kwbiz')">
+            <span class="unit-badge ubadge-biz" id="kwbiz-ubadge">kW</span>
+          </div>
+          <div class="unit-pills">
+            <button class="unit-pill active-cap" id="kwbiz-pill-kw" onclick="setUnit('kwbiz','kw')">kW</button>
+            <button class="unit-pill" id="kwbiz-pill-mw" onclick="setUnit('kwbiz','mw')">MW</button>
+          </div>
+          <div class="error-msg" id="kwbiz-error">Please enter a valid capacity greater than 0.</div>
+        </div>
+      </div>
+      <button class="calc-btn btn-biz" onclick="calcCapacity('kwbiz')">🏢 Calculate Cost</button>
+
+      <!-- Hidden anchor to store kw dataset -->
+      <div id="kwbiz-result" style="display:none;"></div>
+
+      <!-- Cost calculator shown after Calculate Cost (always for business) -->
+      <div class="cost-section" id="kwbiz-cost-section" style="display:none;">
+        <div class="cost-toggle-header" onclick="toggleCost('kwbiz')">
+          <div class="cost-toggle-left">
+            <span>💰</span>
+            <span class="cost-toggle-title" style="color:var(--blue)">Cost Calculator</span>
+          </div>
+          <span class="cost-chevron" id="kwbiz-chevron" style="color:var(--blue)">›</span>
+        </div>
+        <div class="cost-body" id="kwbiz-cbody">
+          <div class="cost-input-group">
+            <div class="input-label"><span>Cost per kW</span><span class="input-hint">₹ per kW</span></div>
+            <div class="number-field">
+              <input type="number" class="inp-biz" id="kwbiz-cpkw" placeholder="e.g. 60000" min="1" oninput="clearCostResult('kwbiz')">
+              <span class="unit-badge ubadge-biz">₹/kW</span>
+            </div>
+          </div>
+          <div class="cost-input-group">
+            <div class="input-label"><span>Additional Costs</span><span class="input-hint">Optional</span></div>
+            <div class="number-field">
+              <input type="number" class="inp-biz" id="kwbiz-extra" placeholder="e.g. 10000" min="0" oninput="clearCostResult('kwbiz')">
+              <span class="unit-badge ubadge-biz">₹</span>
+            </div>
+          </div>
+          <button class="calc-btn btn-biz" style="margin-top:0.5rem;" onclick="calcCostFromCapacity('kwbiz')">💰 Calculate Total Cost</button>
+          <div class="cost-result" id="kwbiz-costresult">
+            <div class="cost-result-row"><span class="cost-result-label">Plant Capacity</span><span class="cost-result-val" style="color:var(--blue)" id="kwbiz-cr-cap">—</span></div>
+            <div class="cost-result-row"><span class="cost-result-label">Project Cost</span><span class="cost-result-val" id="kwbiz-cr-base">—</span></div>
+            <div class="cost-result-row"><span class="cost-result-label">Additional</span><span class="cost-result-val" id="kwbiz-cr-extra">—</span></div>
+            <div class="cost-divider"></div>
+            <div class="cost-result-row"><span class="cost-result-label total-label">Total Estimated Cost</span><span class="cost-result-val total-amount" id="kwbiz-cr-total">—</span></div>
+          </div>
+          <div class="error-msg" id="kwbiz-cost-error" style="margin-top:0.8rem;">Please enter a valid cost per kW.</div>
+        </div>
+      </div>
+      <div class="footer">Enter capacity directly to estimate cost</div>
+    </div>
+
+  </div><!-- /mpanel-capacity -->
+
+</div><!-- /wrapper -->
+
+<script>
+// ── Cost table for residential ──
+const RES_COST_TABLE = {2:168000,3:220000,4:280000,5:316000,6:400000,8:510000,10:612000};
+const RES_COST_KEYS  = [2,3,4,5,6,8,10];
+
+function getResCost(kw) {
+  for (let i=0; i<RES_COST_KEYS.length; i++) {
+    if (kw <= RES_COST_KEYS[i]) return {kw:RES_COST_KEYS[i], cost:RES_COST_TABLE[RES_COST_KEYS[i]]};
+  }
+  return null;
+}
+
+function fmtInr(n) { return '₹' + n.toLocaleString('en-IN'); }
+
+// ── Unit state ──
+const unitState = { kwres:'kw', kwbiz:'kw' };
+
+function setUnit(prefix, unit) {
+  unitState[prefix] = unit;
+  document.getElementById(prefix+'-pill-kw').classList.toggle('active-cap', unit==='kw');
+  document.getElementById(prefix+'-pill-mw').classList.toggle('active-cap', unit==='mw');
+  document.getElementById(prefix+'-ubadge').textContent = unit==='kw' ? 'kW' : 'MW';
+  document.getElementById(prefix+'-cap').placeholder    = unit==='kw' ? 'e.g. 5' : 'e.g. 0.5';
+  clearPanel(prefix);
+}
+
+// ── Primary tab switch ──
+function switchPrimary(tab) {
+  document.getElementById('mpanel-consumption').classList.toggle('active', tab==='consumption');
+  document.getElementById('mpanel-capacity').classList.toggle('active', tab==='capacity');
+
+  const cBtn = document.getElementById('ptab-consumption');
+  const kBtn = document.getElementById('ptab-capacity');
+
+  cBtn.className = 'primary-tab' + (tab==='consumption' ? ' active-consumption' : ' dimmed');
+  kBtn.className = 'primary-tab' + (tab==='capacity'    ? ' active-capacity'    : ' dimmed');
+
+  document.getElementById('subtabs-consumption').style.display = tab==='consumption' ? 'grid' : 'none';
+  document.getElementById('subtabs-capacity').style.display    = tab==='capacity'    ? 'grid' : 'none';
+}
+
+// ── Sub tab switch ──
+function switchSub(primary, sub) {
+  const prefix = primary==='consumption' ? 'c' : 'kw';
+  const tabRes  = prefix+'tab-res'  || (primary==='consumption' ? 'ctab-res'  : 'kwtab-res');
+  const tabBiz  = primary==='consumption' ? 'ctab-biz'  : 'kwtab-biz';
+  const tabResId = primary==='consumption' ? 'ctab-res' : 'kwtab-res';
+  const tabBizId = primary==='consumption' ? 'ctab-biz' : 'kwtab-biz';
+  const panelResId = primary==='consumption' ? 'cpanel-res' : 'kwpanel-res';
+  const panelBizId = primary==='consumption' ? 'cpanel-biz' : 'kwpanel-biz';
+
+  document.getElementById(panelResId).classList.toggle('active', sub==='res');
+  document.getElementById(panelBizId).classList.toggle('active', sub==='biz');
+  document.getElementById(tabResId).className = 'sub-tab' + (sub==='res' ? ' active-res' : '');
+  document.getElementById(tabBizId).className = 'sub-tab' + (sub==='biz' ? ' active-biz' : '');
+}
+
+// ── Clear panels ──
+function clearPanel(id) {
+  const result = document.getElementById(id+'-result');
+  if (result) result.classList.remove('show');
+  const err = document.getElementById(id+'-error');
+  if (err) err.classList.remove('show');
+  // Hide cost sections
+  const cs = document.getElementById(id+'-cost-section');
+  if (cs) cs.style.display = 'none';
+  const cbody = document.getElementById(id+'-cbody');
+  if (cbody) cbody.classList.remove('open');
+  const chev = document.getElementById(id+'-chevron');
+  if (chev) chev.classList.remove('open');
+  const cr = document.getElementById(id+'-costresult');
+  if (cr) cr.classList.remove('show');
+}
+
+function clearCostResult(id) {
+  const el = document.getElementById(id+'-costresult');
+  if (el) el.classList.remove('show');
+}
+
+// ── Toggle cost section ──
+function toggleCost(id) {
+  const body   = document.getElementById(id+'-cbody');
+  const chevron = document.getElementById(id+'-chevron');
+  body.classList.toggle('open');
+  chevron.classList.toggle('open');
+}
+
+// ── Consumption calculator ──
+function calcConsumption(type) {
+  const id    = 'c' + type;
+  const kwh   = parseFloat(document.getElementById(id+'-kwh').value);
+  const cycle = parseInt(document.querySelector(`input[name="${id}-cycle"]:checked`).value);
+  const errEl = document.getElementById(id+'-error');
+
+  if (!kwh || kwh <= 0 || isNaN(kwh)) {
+    errEl.classList.add('show');
+    document.getElementById(id+'-result').classList.remove('show');
+    return;
+  }
+  errEl.classList.remove('show');
+
+  const dailyAvg = kwh / cycle;
+  const solarKw  = dailyAvg / 4;
+  const rounded  = Math.round(solarKw * 100) / 100;
+
+  if (type === 'res') {
+    const ceilKw = Math.ceil(rounded);
+    document.getElementById('cres-rval').textContent  = ceilKw;
+    document.getElementById('cres-runit').textContent = 'kW Solar Plant';
+
+    const match = getResCost(ceilKw);
+    if (match) {
+      document.getElementById('cres-fixedcost').style.display = 'block';
+      document.getElementById('cres-costval').textContent     = fmtInr(match.cost);
+      document.getElementById('cres-costnote').textContent    = `Based on ${match.kw} kW tier`;
+      document.getElementById('cres-cost-section').style.display = 'none';
+    } else {
+      document.getElementById('cres-fixedcost').style.display = 'none';
+      document.getElementById('cres-cost-section').style.display = 'block';
+      clearCostResult('cres');
+      document.getElementById('cres-cbody').classList.add('open');
+      document.getElementById('cres-chevron').classList.add('open');
+      document.getElementById('cres-cpkw').value = '';
+      document.getElementById('cres-extra').value = '';
+      document.getElementById('cres-cost-error').classList.remove('show');
+    }
+    // Store raw kW
+    document.getElementById('cres-result').dataset.kw = ceilKw;
+
+  } else {
+    const displayVal  = rounded >= 1000 ? (rounded/1000).toFixed(2) : rounded.toFixed(2);
+    const displayUnit = rounded >= 1000 ? 'MW Solar Plant' : 'kW Solar Plant';
+    document.getElementById('cbiz-rval').textContent  = displayVal;
+    document.getElementById('cbiz-runit').textContent = displayUnit;
+    document.getElementById('cbiz-result').dataset.kw = rounded;
+
+    // Show cost section fresh
+    document.getElementById('cbiz-cost-section').style.display = 'block';
+    clearCostResult('cbiz');
+    document.getElementById('cbiz-cbody').classList.add('open');
+    document.getElementById('cbiz-chevron').classList.add('open');
+    document.getElementById('cbiz-cpkw').value  = '';
+    document.getElementById('cbiz-extra').value = '';
+    document.getElementById('cbiz-cost-error').classList.remove('show');
+  }
+
+  const card = document.getElementById(id+'-result');
+  card.classList.remove('show');
+  void card.offsetWidth;
+  card.classList.add('show');
+}
+
+// ── Cost calculator (for consumption panels) ──
+function calcCost(id) {
+  const costPerKw = parseFloat(document.getElementById(id+'-cpkw').value);
+  const extra     = parseFloat(document.getElementById(id+'-extra').value) || 0;
+  const errEl     = document.getElementById(id+'-cost-error');
+  const kw        = parseFloat(document.getElementById(id.replace('c','c')+'-result').dataset.kw ||
+                    document.getElementById(id.includes('res') ? 'cres-result' : 'cbiz-result').dataset.kw);
+
+  if (!costPerKw || costPerKw <= 0 || isNaN(costPerKw) || isNaN(kw) || kw <= 0) {
+    errEl.classList.add('show');
+    document.getElementById(id+'-costresult').classList.remove('show');
+    return;
+  }
+  errEl.classList.remove('show');
+
+  const base  = kw * costPerKw;
+  const total = base + extra;
+
+  document.getElementById(id+'-cr-cap').textContent   = kw + ' kW';
+  document.getElementById(id+'-cr-base').textContent  = fmtInr(base);
+  document.getElementById(id+'-cr-extra').textContent = fmtInr(extra);
+  document.getElementById(id+'-cr-total').textContent = fmtInr(total);
+
+  const res = document.getElementById(id+'-costresult');
+  res.classList.remove('show');
+  void res.offsetWidth;
+  res.classList.add('show');
+}
+
+// ── Capacity calculator ──
+function calcCapacity(id) {
+  const rawCap = parseFloat(document.getElementById(id+'-cap').value);
+  const errEl  = document.getElementById(id+'-error');
+  const unit   = unitState[id] || 'kw';
+
+  if (!rawCap || rawCap <= 0 || isNaN(rawCap)) {
+    errEl.classList.add('show');
+    document.getElementById(id+'-result').classList.remove('show');
+    return;
+  }
+  errEl.classList.remove('show');
+
+  const kw = unit === 'kw' ? rawCap : rawCap * 1000;
+
+  if (id === 'kwres') {
+    const ceilKw = Math.ceil(kw);
+    document.getElementById('kwres-result').dataset.kw = ceilKw;
+
+    const match = getResCost(ceilKw);
+    if (match) {
+      // ≤10 kW: show fixed cost card, no calculator
+      document.getElementById('kwres-fixedcost').style.display    = 'block';
+      document.getElementById('kwres-costval').textContent         = fmtInr(match.cost);
+      document.getElementById('kwres-costnote').textContent        = `Based on ${match.kw} kW tier`;
+      document.getElementById('kwres-cost-section').style.display = 'none';
+      // Show result card
+      const card = document.getElementById('kwres-result');
+      card.classList.remove('show');
+      void card.offsetWidth;
+      card.classList.add('show');
+    } else {
+      // >10 kW: hide result card, show cost calculator directly
+      document.getElementById('kwres-result').classList.remove('show');
+      document.getElementById('kwres-fixedcost').style.display    = 'none';
+      document.getElementById('kwres-cost-section').style.display = 'block';
+      clearCostResult('kwres');
+      document.getElementById('kwres-cbody').classList.add('open');
+      document.getElementById('kwres-chevron').classList.add('open');
+      document.getElementById('kwres-cpkw').value  = '';
+      document.getElementById('kwres-extra').value = '';
+      document.getElementById('kwres-cost-error').classList.remove('show');
+    }
+    return;
+
+  } else {
+    // Business: always reveal cost calculator directly
+    document.getElementById('kwbiz-result').dataset.kw = kw;
+
+    document.getElementById('kwbiz-cost-section').style.display = 'block';
+    clearCostResult('kwbiz');
+    document.getElementById('kwbiz-cbody').classList.add('open');
+    document.getElementById('kwbiz-chevron').classList.add('open');
+    document.getElementById('kwbiz-cpkw').value  = '';
+    document.getElementById('kwbiz-extra').value = '';
+    document.getElementById('kwbiz-cost-error').classList.remove('show');
+  }
+
+}
+
+// ── Cost from capacity
+function calcCostFromCapacity(id) {
+  const costPerKw = parseFloat(document.getElementById(id+'-cpkw').value);
+  const extra     = parseFloat(document.getElementById(id+'-extra').value) || 0;
+  const errEl     = document.getElementById(id+'-cost-error');
+  const kw        = parseFloat(document.getElementById(id+'-result').dataset.kw);
+
+  if (!costPerKw || costPerKw <= 0 || isNaN(costPerKw) || isNaN(kw) || kw <= 0) {
+    errEl.classList.add('show');
+    document.getElementById(id+'-costresult').classList.remove('show');
+    return;
+  }
+  errEl.classList.remove('show');
+
+  const base  = kw * costPerKw;
+  const total = base + extra;
+
+  document.getElementById(id+'-cr-cap').textContent   = kw + ' kW';
+  document.getElementById(id+'-cr-base').textContent  = fmtInr(base);
+  document.getElementById(id+'-cr-extra').textContent = fmtInr(extra);
+  document.getElementById(id+'-cr-total').textContent = fmtInr(total);
+
+  const res = document.getElementById(id+'-costresult');
+  res.classList.remove('show');
+  void res.offsetWidth;
+  res.classList.add('show');
+}
+</script>
+</body>
+</html>
